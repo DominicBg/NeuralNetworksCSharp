@@ -58,6 +58,7 @@ namespace NeuralNetwork
         //Cycle through exemples
         int trainingCycleCount = 0;
         int sampleCycleCount = 0;
+
         int sampleCount = 0;
 
         
