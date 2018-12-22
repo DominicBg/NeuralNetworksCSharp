@@ -7,6 +7,7 @@ Add the component to your GameObject,
 ![component](Image/BrainComponent.PNG)
 
 Follow the instructions!
+
 ![ex](Image/HowToUse.PNG)
 
 
