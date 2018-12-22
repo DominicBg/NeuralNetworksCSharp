@@ -5,16 +5,18 @@ using UnityEngine.UI;
 
 namespace NeuralNetwork
 { 
-    public class ANNTester : MonoBehaviour
+    public class ANNBatchTester : MonoBehaviour
     {
 
-	    NeuralNetwork neuralNetwork;
+	    BatchNeuralNetwork neuralNetwork;
 	    [SerializeField]int[] sizeNetwork;
+
+        [SerializeField] Exemple[] exemples;
+
+	    [SerializeField] int numEpoch;
 	    [SerializeField] float learningRate;
         [SerializeField] float momentum;
         [SerializeField] bool isTraining;
-        [SerializeField] int trainPerFrame;
-        [SerializeField] Exemple exemple;
 	    public Text outputLog;
 
         [Header("debug")]
@@ -24,38 +26,36 @@ namespace NeuralNetwork
 
         void Start()
 	    {
-		    neuralNetwork = new NeuralNetwork(sizeNetwork);
-            neuralNetwork.SetTransferFunction(TransferFunction.Function.Sigmoid);
+		    neuralNetwork = new BatchNeuralNetwork(sizeNetwork);
 	    }
 
 	    void Update ()
         {
             if (isTraining)
-            {
-                for (int i = 0; i < trainPerFrame; i++)
-                {
-                    Train();
+                Train();
+            
 
-                }
-            }
-            if (Input.GetKeyDown(KeyCode.Space))
+            if(Input.GetKeyDown(KeyCode.Space))
                 Use();
+
         }
 
         private void Train()
         {
-            neuralNetwork.SetInput(exemple.inputs);
-            neuralNetwork.Update();
-            neuralNetwork.TrainWithExemples(exemple.outputs, learningRate, momentum);
+            foreach (Exemple exemple in exemples)
+            {
+                neuralNetwork.SetInput(exemple.inputs);
+                neuralNetwork.AddTrainingData(neuralNetwork.GetOutputs(), exemple.outputs);
+            }
+
+            neuralNetwork.Batch(learningRate, momentum, numEpoch);
             deltaErrors = neuralNetwork.GetDeltaError();
-            ouputs = neuralNetwork.GetOutputs();    
         }
 
         private void Use()
         {
-            neuralNetwork.SetInput(exemple.inputs);
+            neuralNetwork.SetInput(inputs);
             neuralNetwork.Update();
-            deltaErrors = neuralNetwork.GetDeltaError();
             ouputs = neuralNetwork.GetOutputs();
         }
 
@@ -64,5 +64,11 @@ namespace NeuralNetwork
 	    {
 		    neuralNetwork.SaveBrain("test");
 	    }
+    }
+    [System.Serializable]
+    public class Exemple
+    {
+        public float[] inputs;
+        public float[] outputs;
     }
 }

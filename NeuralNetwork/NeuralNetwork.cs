@@ -19,12 +19,25 @@ namespace NeuralNetwork
 
         int[] sizeNetwork = new int[2];
         Neuron[,] network;
+        TransferFunction func;
+        protected int outputSize;
+
+        public int[] SizeNetwork { get { return SizeNetwork; } }
+        public Neuron[,] Network { get { return network; } }
+
 
         // i = iLayer
         // j = jNeuron 
         // k = kWeight
 
         public NeuralNetwork(int[] sizeNetwork)
+        {
+            InitialiseNetwork(sizeNetwork);
+            SetTransferFunction(TransferFunction.Function.Sigmoid);
+            outputSize = sizeNetwork[sizeNetwork.Length - 1];
+        }
+
+        private void InitialiseNetwork(int[] sizeNetwork)
         {
             this.sizeNetwork = sizeNetwork;
             if (sizeNetwork.Length < 2)
@@ -49,6 +62,15 @@ namespace NeuralNetwork
         }
 
         /// <summary>
+        /// Change the transfer function, by default Sigmoid
+        /// </summary>
+        /// <param name="transferFunction"></param>
+        public void SetTransferFunction(TransferFunction.Function transferFunction)
+        {
+            func = TransferFunction.GetTransferFunction(transferFunction);
+        }
+
+        /// <summary>
         /// Feed Forward 
         /// </summary>
         public void Update()
@@ -63,7 +85,6 @@ namespace NeuralNetwork
                 }
             }
         }
-
 
         /// <summary>
         /// Calculate the value of a given neuron
@@ -83,7 +104,7 @@ namespace NeuralNetwork
                 output += network[iLayer - 1, kWeight].output * network[iLayer - 1, kWeight].weights[jNeuron];
             }
             neuron.input = output;
-            neuron.output = Sigmoid(output);
+            neuron.output = func.f(output);
         }
 
         /// <summary>
@@ -141,12 +162,22 @@ namespace NeuralNetwork
         /// <param name="index">Index of the output neuron</param>
         public float GetOutput(int index)
         {
-            if (index > sizeNetwork[sizeNetwork.Length - 1])
+            if (index > outputSize)
             {
                 Debug.Log(ERROROUTPUT);
                 return 0;
             }
-            return network[sizeNetwork.Length - 1, index].output;
+            return network[outputSize, index].output;
+        }
+
+        public float[] GetOutputs()
+        {
+            float[] outputs = new float[outputSize];
+            for (int i = 0; i < outputSize; i++)
+            {
+                outputs[i] = network[outputSize, i].output;
+            }
+            return outputs;
         }
 
         /// <summary>
@@ -157,13 +188,13 @@ namespace NeuralNetwork
         /// <param name="index">Index of the output neuron</param>
         public bool GetOutputBool(int index)
         {
-            if (index > sizeNetwork[sizeNetwork.Length - 1])
+            if (index > outputSize)
             {
                 Debug.Log(ERROROUTPUT);
                 return false;
             }
             //0 for false 1 for true, .5f is the middle point
-            return (network[sizeNetwork.Length - 1, index].output > .5f) ? true : false;
+            return (network[outputSize, index].output > .5f) ? true : false;
         }
 
         /// <summary>
@@ -177,12 +208,12 @@ namespace NeuralNetwork
         /// <param name="rangeTo">The upper limit of the output</param>
         public float GetOutputRange(int index, float rangeFrom, float rangeTo)
         {
-            if (index > sizeNetwork[sizeNetwork.Length - 1])
+            if (index > outputSize)
             {
                 Debug.Log(ERROROUTPUT);
                 return 0;
             }
-            return Mathf.Lerp(rangeFrom, rangeTo, network[sizeNetwork.Length - 1, index].output);
+            return Mathf.Lerp(rangeFrom, rangeTo, network[outputSize, index].output);
         }
 
         /// <summary>
@@ -192,124 +223,28 @@ namespace NeuralNetwork
         /// <param name="index">Index of the output neuron</param>
         public float GetOutputNegatif(int index)
         {
-            if (index > sizeNetwork[sizeNetwork.Length - 1])
+            if (index > outputSize)
             {
                 Debug.Log(ERROROUTPUT);
                 return 0;
             }
-            return 2 * network[sizeNetwork.Length - 1, index].output - 1;
-        }
-        #endregion
-
-        #region save/load
-        public void SaveBrain()
-        {
-            SaveBrain("");
-        }
-        public void SaveBrain(string additional)
-        {
-            string str = "";
-            for (int i = 0; i < sizeNetwork.Length - 1; i++)
-            {
-                //+1 for bias
-                for (int j = 0; j < sizeNetwork[i] + 1; j++)
-                {
-                    if (network[i, j] == null)
-                        continue;
-
-                    for (int k = 0; k < network[i, j].weights.Length; k++)
-                    {
-                        str += network[i, j].weights[k];
-                        if (k != network[i, j].weights.Length - 1)
-                            str += " ";
-                    }
-
-                    str += "|" + network[i, j].deltaError + "|\n"; //each neuron
-                }
-                str += "\n"; //each layer
-            }
-            string path = "Assets/Resources/NeuralNetworkValue" + additional + ".txt";
-            StreamWriter writer = new StreamWriter(path, false);
-            writer.WriteLine(str);
-            writer.Close();
-        }
-        public void LoadBrain()
-        {
-            LoadBrain("");
-        }
-        public void LoadBrain(string additional)
-        {
-            string path = "Assets/Resources/NeuralNetworkValue" + additional + ".txt";
-            StreamReader reader = new StreamReader(path);
-
-            for (int i = 0; i < sizeNetwork.Length - 1; i++)
-            {
-                //+1 for bias
-                for (int j = 0; j < sizeNetwork[i] + 1; j++)
-                {
-                    string[] strWeights = reader.ReadLine().Split(' ');
-                    float[] weights = new float[strWeights.Length];
-                    for (int k = 0; k < strWeights.Length; k++)
-                    {
-                        Debug.Log(strWeights[k]);
-                        weights[k] = System.Convert.ToSingle(strWeights[k]);
-                    }
-                    network[i, j].weights = weights;
-                }
-            }
-            reader.Close();
-        }
-        #endregion
-
-        #region static
-        /// <summary>
-        /// Mixs the weights of 2 Neural Networks with a chance (mutationRate) to randomise a weight.
-        /// </summary>
-        /// <returns>The newest Neural Network</returns>
-        /// <param name="papa">First Neural Network.</param>
-        /// <param name="maman">Second Neural Network.</param>
-        /// <param name="sizeNetwork">Size network.</param>
-        /// <param name="mutationRate">Mutation rate (Between 0 and 1).</param>
-        public static NeuralNetwork MixNeuron(NeuralNetwork papa, NeuralNetwork maman, int[] sizeNetwork, float mutationRate)
-        {
-            NeuralNetwork baby = new NeuralNetwork(sizeNetwork);
-
-            //recopy every neuron up to the output layer
-            for (int iLayer = 0; iLayer < sizeNetwork.Length - 1; iLayer++)
-            {
-                //each neuron in the layer i, +1 for bias
-                for (int jNeuron = 0; jNeuron < sizeNetwork[iLayer] + 1; jNeuron++)
-                {
-                    //each weight in the current Neuron
-                    for (int kWeight = 0; kWeight < papa.GetNeuron(iLayer, jNeuron).weights.Length; kWeight++)
-                    {
-                        float weight = 0;
-                        if ((float)Random.Range(0f, 1f) < mutationRate)
-                        {
-                            weight = Neuron.RandomWeight();
-                        }
-                        else
-                        {
-                            if (Random.Range(0, 2) == 0)
-                            {
-                                weight = papa.GetNeuron(iLayer, jNeuron).weights[kWeight];
-                            }
-                            else
-                            {
-                                weight = maman.GetNeuron(iLayer, jNeuron).weights[kWeight];
-                            }
-                        }
-                        baby.GetNeuron(iLayer, jNeuron).weights[kWeight] = weight;
-                    }
-                }
-            }
-            return baby;
+            return 2 * network[outputSize, index].output - 1;
         }
         #endregion
 
         #region backpropagation
+        public float[] GetDeltaError()
+        {
+            int iLayer = sizeNetwork.Length - 1;
+            int iLayerSize = sizeNetwork[iLayer];
+            float[] deltaErrors = new float[iLayerSize];
+            for (int jNeuron = 0; jNeuron < iLayerSize; jNeuron++)
+            {
+                deltaErrors[jNeuron] = network[iLayer, jNeuron].deltaError;
+            }
+            return deltaErrors;
+        }
 
-        //Maybe to remove
         public void SetDeltaError(float[] deltaErrors)
         {
             int iLayer = sizeNetwork.Length - 1;
@@ -322,45 +257,7 @@ namespace NeuralNetwork
             }
         }
 
-        //Maybe to remove
-        public float[] GetDeltaError(float[] targetOutputs)
-        {
-            string str = "";
-            return GetDeltaError(targetOutputs, ref str);
-        }
-        //Maybe to remove
-        public float[] GetDeltaError(float[] targetOutputs, ref string log)
-        {
-            int iLayer = sizeNetwork.Length - 1;
-            if (targetOutputs.Length > sizeNetwork[iLayer])
-                Debug.Log(ERRORLENGTH);
-
-            float[] deltaErrors = new float[targetOutputs.Length];
-            float totalError = 0;
-            log = "";
-            for (int jNeuron = 0; jNeuron < targetOutputs.Length; jNeuron++)
-            {
-                Neuron neuron = network[iLayer, jNeuron];
-                float output = GetOutput(jNeuron);
-                float target = targetOutputs[jNeuron];
-
-                float error = target - output;
-                error = (error * error) / 2;
-
-
-                float deltaError = Sigmoid_d1(neuron.input) * (target - output);
-                deltaErrors[jNeuron] = deltaError;
-
-                log += (jNeuron + ") ouput = " + output + "| target = " + target + "\n");
-
-                totalError += error;
-
-            }
-            log += "Total Error = " + totalError.ToString("N4") + "\n";
-            return deltaErrors;
-        }
-
-        private string CalculateSetError(float[] targetOutputs)
+        protected string CalculateSetError(float[] targetOutputs)
         {
             int iLayer = sizeNetwork.Length - 1;
             if (targetOutputs.Length > sizeNetwork[iLayer])
@@ -376,11 +273,10 @@ namespace NeuralNetwork
                 float output = GetOutput(jNeuron);
                 float target = targetOutputs[jNeuron];
 
-
                 float error = target - output;
                 error = (error * error) / 2;
 
-                float deltaError = Sigmoid_d1(neuron.input) * (target - output);
+                float deltaError = func.df(neuron.input) * (target - output);
 
                 network[iLayer, jNeuron].error = error;
                 network[iLayer, jNeuron].deltaError = deltaError;
@@ -431,6 +327,12 @@ namespace NeuralNetwork
         public void Train(float learningRate, float momentum)
         {
             //sizeNetwork.Length-2 to start at the last hidden layer
+            BackPropagationCalculateError();
+            BackPropagationAjustWeight(learningRate, momentum);
+        }
+
+        private void BackPropagationCalculateError()
+        {
             for (int iLayer = sizeNetwork.Length - 2; iLayer >= 0; iLayer--)
             {
                 for (int jNeuron = 0; jNeuron <= sizeNetwork[iLayer]; jNeuron++)
@@ -442,15 +344,13 @@ namespace NeuralNetwork
                     {
                         sumErrWeight += network[iLayer + 1, kWeight].deltaError * neuron.weights[kWeight];
                     }
-                    float deltaError = Sigmoid_d1(neuron.input) * sumErrWeight;
+                    float deltaError = func.df(neuron.input) * sumErrWeight;
                     neuron.deltaError = deltaError;
                 }
             }
-
-            BackPropagation(learningRate, momentum);
         }
 
-        protected void BackPropagation(float learningRate, float momentum)
+        protected void BackPropagationAjustWeight(float learningRate, float momentum)
         {
             //update the weights
             for (int iLayer = sizeNetwork.Length - 2; iLayer >= 0; iLayer--)
@@ -468,36 +368,6 @@ namespace NeuralNetwork
                     }
                 }
             }
-        }
-        #endregion
-
-        #region transferFunction
-
-        public float Sigmoid(float x)
-        {
-            return 1 / (1 + Mathf.Exp(-x));
-        }
-        public float Sigmoid_d1(float x)
-        {
-            float s = Sigmoid(x);
-            float y = s * (1 - s);
-            if (y != 0)
-                return y;
-            else
-            {
-                //Debug.Log(0);
-                return 0; //Mathf.Epsilon;
-            }
-        }
-
-        /// <summary>
-        /// Normalizeds the sigmoid from 0 > 1, to  -1 > 1.
-        /// </summary>
-        /// <returns>The sigmoid.</returns>
-        /// <param name="x">The x coordinate.</param>
-        float NormalizedSigmoid(float x)
-        {
-            return 2 * (Sigmoid(x)) - 1;
         }
         #endregion
     }
