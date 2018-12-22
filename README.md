@@ -3,7 +3,7 @@ Neural Networks in C#, useful in Unity
 
 How to use
 Add the component to your GameObject,
-![component](Images/BrainComponent.PNG)
+![component](Image/BrainComponent.PNG)
 
 
-![exemple](How to use.PNG)
+![exemple](Image/How to use.PNG)
