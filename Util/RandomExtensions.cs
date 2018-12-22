@@ -1,16 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 
 static class RandomExtensions
 {
-    public static void Shuffle<T>(this Random rng, T[] array)
+    private static Random rng = new Random();
+
+    public static void Shuffle<T>(this IList<T> list)
     {
-        int n = array.Length;
+        int n = list.Count;
         while (n > 1)
         {
-            int k = rng.Next(n--);
-            T temp = array[n];
-            array[n] = array[k];
-            array[k] = temp;
+            n--;
+            int k = rng.Next(n + 1);
+            T value = list[k];
+            list[k] = list[n];
+            list[n] = value;
         }
     }
+
 }

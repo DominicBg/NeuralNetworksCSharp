@@ -12,8 +12,8 @@ public class TransferFunctionSigmoid : TransferFunction
             return y;
         else
         {
-            //return 0;
-           return Mathf.Epsilon;
+           return 0;
+           //return Mathf.Epsilon;
         }
     }
 
