@@ -42,5 +42,9 @@ public class HowToUseTheBrain : MonoBehaviour
         //Receive actions from brain
         float[] actions = brain.SetInputGetOutput(perceptions);
 
+        //---To acces extra information---//
+        float totalError = brain.info.totalError;
+        float totalDeltaError = brain.info.totalDetalError;
+        string log = brain.info.log;
     }
 }

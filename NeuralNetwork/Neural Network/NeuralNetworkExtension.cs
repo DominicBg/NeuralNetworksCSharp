@@ -6,11 +6,11 @@ namespace NeuralNetwork
 {
     public static class NeuralNetworkExtension
     {
-        public static void SaveBrain(this NeuralNetwork nn)
+        public static void SaveBrain(this ArtificialNeuralNetwork nn)
         {
             SaveBrain(nn, "");
         }
-        public static void SaveBrain(this NeuralNetwork nn, string additional)
+        public static void SaveBrain(this ArtificialNeuralNetwork nn, string additional)
         {
             string str = "";
             for (int i = 0; i < nn.SizeNetwork.Length - 1; i++)
@@ -37,11 +37,11 @@ namespace NeuralNetwork
             writer.WriteLine(str);
             writer.Close();
         }
-        public static void LoadBrain(this NeuralNetwork nn)
+        public static void LoadBrain(this ArtificialNeuralNetwork nn)
         {
             LoadBrain(nn, "");
         }
-        public static void LoadBrain(this NeuralNetwork nn, string additional)
+        public static void LoadBrain(this ArtificialNeuralNetwork nn, string additional)
         {
             string path = "Assets/Resources/NeuralNetworkValue" + additional + ".txt";
             StreamReader reader = new StreamReader(path);
@@ -73,9 +73,9 @@ namespace NeuralNetwork
         /// <param name="maman">Second Neural Network.</param>
         /// <param name="sizeNetwork">Size network.</param>
         /// <param name="mutationRate">Mutation rate (Between 0 and 1).</param>
-        public static NeuralNetwork MixNeuron(NeuralNetwork papa, NeuralNetwork maman, int[] sizeNetwork, float mutationRate)
+        public static ArtificialNeuralNetwork MixNeuron(ArtificialNeuralNetwork papa, ArtificialNeuralNetwork maman, int[] sizeNetwork, float mutationRate)
         {
-            NeuralNetwork baby = new NeuralNetwork(sizeNetwork);
+            ArtificialNeuralNetwork baby = new ArtificialNeuralNetwork(sizeNetwork);
 
             //recopy every neuron up to the output layer
             for (int iLayer = 0; iLayer < sizeNetwork.Length - 1; iLayer++)

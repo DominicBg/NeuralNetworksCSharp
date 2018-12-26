@@ -38,16 +38,15 @@ using System.Threading;
 namespace NeuralNetwork
 {
     [System.Serializable]
-    public class ThreadNeuralNetwork : NeuralNetwork
+    public class ThreadNeuralNetwork : ArtificialNeuralNetwork
     {
-
         //ERRORS
         const string ERRORLENGTH = ("<color=red>Output and desired ouput must be the same size</color>");
 
         //Batch data
         float[][] batchInputs;
         float[][] batchDesiredOutput;
-        public int[] randomIndices;
+        int[] randomIndices;
 
         //Sizes
         const int BASEBATCHSIZE = 50;
@@ -135,18 +134,17 @@ namespace NeuralNetwork
         /// </para>
         /// 
         /// </summary>
-        /// <returns>The log of the learning (optional)</returns>
         /// <param name="learningRate">Learning rate.</param>
         /// <param name="momentum">Momentum.</param>
-        public string BatchTraining(float learningRate, float momentum)
+        public void BatchTraining(float learningRate, float momentum)
         {
             if (sampleCount == 0)
-                return "";
+                return;
 
             int index = randomIndices[trainingCycleCount];
             SetInput(batchInputs[index]);
             Update();
-            string log = TrainWithExemples(batchDesiredOutput[index], learningRate, momentum);
+           TrainWithExemples(batchDesiredOutput[index], learningRate, momentum);
             // trainingCycleCount = (trainingCycleCount + 1) % sampleCount;
 
             trainingCycleCount++;
@@ -155,8 +153,6 @@ namespace NeuralNetwork
                 trainingCycleCount = 0;
                 randomIndices.Shuffle();
             }
-
-            return log;
         }
 
         /// <summary>
@@ -170,11 +166,10 @@ namespace NeuralNetwork
         /// </para>
         /// 
         /// </summary>
-        /// <returns>The log of the learning (optional)</returns>
         /// <param name="learningRate">Learning rate.</param>
-        public string BatchTraining(float learningRate)
+        public void BatchTraining(float learningRate)
         {
-            return BatchTraining(learningRate, 0);
+            BatchTraining(learningRate, 0);
         }
 
         /// <summary>
@@ -188,10 +183,9 @@ namespace NeuralNetwork
         /// </para>
         /// 
         /// </summary>
-        /// <returns>The log of the learning (optional)</returns>
-        public string BatchTraining()
+        public void BatchTraining()
         {
-            return BatchTraining(0.1f, 0);
+            BatchTraining(0.1f, 0);
         }
 
         #region MultiThread

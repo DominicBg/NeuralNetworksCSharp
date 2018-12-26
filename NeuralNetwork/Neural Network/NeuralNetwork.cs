@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 
+//
+
 /// <summary>
 /// Author : Dominic Brodeur-Gendron
 /// 
@@ -24,6 +26,7 @@ using System.IO;
 namespace NeuralNetwork
 {
 
+    [System.Obsolete("Use ArtificialNeuralNetwork instead", false)]
     [System.Serializable]
     public class NeuralNetwork
     {

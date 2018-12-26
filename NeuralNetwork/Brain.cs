@@ -8,6 +8,8 @@ public class Brain : MonoBehaviour
     public bool isTraining;
 
     public ThreadNeuralNetwork neuralNetwork { get; private set; }
+    public ArtificialNeuralNetwork.Info info { get; private set; }
+
     [Header("First = input, Last = Output")]
     [SerializeField] int[] sizeNetwork = new int[] { 2, 3, 2 };
     [SerializeField] float learningRate = 0.1f;
@@ -16,9 +18,11 @@ public class Brain : MonoBehaviour
     [SerializeField] float momentum = 1;
     [SerializeField] bool useThread = false;
 
+
     void Start()
     {
         neuralNetwork = new ThreadNeuralNetwork(sizeNetwork);
+        info = neuralNetwork.info;
     }
 
     public void AddTrainingData(float[] inputs, float[] desiredOutput)
