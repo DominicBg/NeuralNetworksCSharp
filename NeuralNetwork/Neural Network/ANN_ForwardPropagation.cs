@@ -1,71 +1,74 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public partial class ArtificialNeuralNetwork {
-    /// <summary>
-    /// Feed Forward. This will take your input and produce an output.
-    /// </summary>
-    public void Update()
+namespace NeuralNetwork
+{
+    public partial class ArtificialNeuralNetwork
     {
-        //Starts at first hidden layer (index 1)
-        for (int iLayer = 1; iLayer < sizeNetwork.Length; iLayer++)
+        /// <summary>
+        /// Feed Forward. This will take your input and produce an output.
+        /// </summary>
+        public void Update()
         {
-            //each neuron of the hiddenLayer index i
-            for (int jNeuron = 0; jNeuron < sizeNetwork[iLayer]; jNeuron++)
+            //Starts at first hidden layer (index 1)
+            for (int iLayer = 1; iLayer < sizeNetwork.Length; iLayer++)
             {
-                CalculateValueNeuron(iLayer, jNeuron);
+                //each neuron of the hiddenLayer index i
+                for (int jNeuron = 0; jNeuron < sizeNetwork[iLayer]; jNeuron++)
+                {
+                    CalculateValueNeuron(iLayer, jNeuron);
+                }
             }
         }
-    }
 
 
-    /// <summary>
-    /// Calculate the value of a given neuron
-    /// [i,j] is the neuron in the network
-    /// neuron[i,j] get all from neuron[i-1, j] * their weight
-    /// sum it all and pass it into sigmoid function
-    /// </summary>
-    /// <param name="i">The index.</param>
-    /// <param name="j">J.</param>
-    void CalculateValueNeuron(int iLayer, int jNeuron)
-    {
-        Neuron neuron = network[iLayer, jNeuron];
-        float output = 0;
-        //+1 for bias
-        for (int kWeight = 0; kWeight < sizeNetwork[iLayer - 1] + 1; kWeight++)
+        /// <summary>
+        /// Calculate the value of a given neuron
+        /// [i,j] is the neuron in the network
+        /// neuron[i,j] get all from neuron[i-1, j] * their weight
+        /// sum it all and pass it into sigmoid function
+        /// </summary>
+        /// <param name="i">The index.</param>
+        /// <param name="j">J.</param>
+        void CalculateValueNeuron(int iLayer, int jNeuron)
         {
-            output += network[iLayer - 1, kWeight].output * network[iLayer - 1, kWeight].weights[jNeuron];
+            Neuron neuron = network[iLayer, jNeuron];
+            float output = 0;
+            //+1 for bias
+            for (int kWeight = 0; kWeight < sizeNetwork[iLayer - 1] + 1; kWeight++)
+            {
+                output += network[iLayer - 1, kWeight].output * network[iLayer - 1, kWeight].weights[jNeuron];
+            }
+            neuron.input = output;
+            //neuron.output = Sigmoid(output);
+            neuron.output = func.f(output);
         }
-        neuron.input = output;
-        //neuron.output = Sigmoid(output);
-        neuron.output = func.f(output);
-    }
 
-    /// <summary>
-    /// Return the highest number of neuron for each layer
-    /// </summary>
-    /// <returns>Return the highest number of neuron</returns>
-    int MaxValueNetwork()
-    {
-        int maxValue = sizeNetwork[0];
-        for (int iLayer = 0; iLayer < sizeNetwork.Length; iLayer++)
+        /// <summary>
+        /// Return the highest number of neuron for each layer
+        /// </summary>
+        /// <returns>Return the highest number of neuron</returns>
+        int MaxValueNetwork()
         {
-            maxValue = Mathf.Max(maxValue, sizeNetwork[iLayer]);
+            int maxValue = sizeNetwork[0];
+            for (int iLayer = 0; iLayer < sizeNetwork.Length; iLayer++)
+            {
+                maxValue = Mathf.Max(maxValue, sizeNetwork[iLayer]);
+            }
+            return maxValue;
         }
-        return maxValue;
+
+        /// <summary>
+        /// Return the neuron at position [i,j]
+        /// </summary>
+        /// <returns>The neuron.</returns>
+        /// <param name="iLayer">The index layer.</param>
+        /// <param name="jNeuron">The index neuron.</param>
+        public Neuron GetNeuron(int iLayer, int jNeuron)
+        {
+            return network[iLayer, jNeuron];
+        }
+
+
     }
-
-    /// <summary>
-    /// Return the neuron at position [i,j]
-    /// </summary>
-    /// <returns>The neuron.</returns>
-    /// <param name="iLayer">The index layer.</param>
-    /// <param name="jNeuron">The index neuron.</param>
-    public Neuron GetNeuron(int iLayer, int jNeuron)
-    {
-        return network[iLayer, jNeuron];
-    }
-
-
 }

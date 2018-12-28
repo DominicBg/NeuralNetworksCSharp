@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+
 namespace NeuralNetwork
 {
     public static class NeuralNetworkExtension
@@ -18,17 +19,17 @@ namespace NeuralNetwork
                 //+1 for bias
                 for (int j = 0; j < nn.SizeNetwork[i] + 1; j++)
                 {
-                    if (nn.Network[i, j] == null)
+                    if (nn.NeuronNetwork[i, j] == null)
                         continue;
 
-                    for (int k = 0; k < nn.Network[i, j].weights.Length; k++)
+                    for (int k = 0; k < nn.NeuronNetwork[i, j].weights.Length; k++)
                     {
-                        str += nn.Network[i, j].weights[k];
-                        if (k != nn.Network[i, j].weights.Length - 1)
+                        str += nn.NeuronNetwork[i, j].weights[k];
+                        if (k != nn.NeuronNetwork[i, j].weights.Length - 1)
                             str += " ";
                     }
 
-                    str += "|" + nn.Network[i, j].deltaError + "|\n"; //each neuron
+                    //str += "|" + nn.NeuronNetwork[i, j].deltaError + "|\n"; //each neuron
                 }
                 str += "\n"; //each layer
             }
@@ -41,6 +42,7 @@ namespace NeuralNetwork
         {
             LoadBrain(nn, "");
         }
+        //Broken
         public static void LoadBrain(this ArtificialNeuralNetwork nn, string additional)
         {
             string path = "Assets/Resources/NeuralNetworkValue" + additional + ".txt";
@@ -58,7 +60,7 @@ namespace NeuralNetwork
                         Debug.Log(strWeights[k]);
                         weights[k] = System.Convert.ToSingle(strWeights[k]);
                     }
-                    nn.Network[i, j].weights = weights;
+                    nn.NeuronNetwork[i, j].weights = weights;
                 }
             }
             reader.Close();
@@ -89,7 +91,7 @@ namespace NeuralNetwork
                         float weight = 0;
                         if ((float)Random.Range(0f, 1f) < mutationRate)
                         {
-                            weight = Neuron.RandomWeight();
+                            weight = ArtificialNeuralNetwork.Neuron.RandomWeight();
                         }
                         else
                         {

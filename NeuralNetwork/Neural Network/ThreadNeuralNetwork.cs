@@ -92,7 +92,10 @@ namespace NeuralNetwork
         {
             if (inputs.Length != SizeNetwork[0] || desiredOutput.Length != outputSize)
             {
-                Debug.Log(ERRORLENGTH);
+                Debug.LogError(ERRORLENGTH);
+                Debug.LogError("Current input size = " + inputs.Length + ", size network input = " + SizeNetwork[0]);
+                Debug.LogError("Desired output size = " + desiredOutput.Length + ", size network output = " + outputSize);
+
                 return;
             }
             if (!isCycleLoop && sampleCount == batchSize)
@@ -144,8 +147,7 @@ namespace NeuralNetwork
             int index = randomIndices[trainingCycleCount];
             SetInput(batchInputs[index]);
             Update();
-           TrainWithExemples(batchDesiredOutput[index], learningRate, momentum);
-            // trainingCycleCount = (trainingCycleCount + 1) % sampleCount;
+            TrainWithExemples(batchDesiredOutput[index], learningRate, momentum);
 
             trainingCycleCount++;
             if(trainingCycleCount == sampleCount)
