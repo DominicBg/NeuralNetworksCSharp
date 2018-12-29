@@ -26,11 +26,12 @@ public class Brain : MonoBehaviour
     {
         neuralNetwork = new BatchNeuralNetwork(sizeNetwork, maxBatchSize);
         info = neuralNetwork.info;
+        batchInfo = neuralNetwork.batchInfo;
     }
 
-    public void AddTrainingData(float[] inputs, float[] desiredOutput)
+    public void AddTrainingData(float[] inputs, float[] desiredOutput, float weight = 1)
     {
-        neuralNetwork.AddTrainingData(inputs, desiredOutput);
+        neuralNetwork.AddTrainingData(inputs, desiredOutput, weight);
     }
 
     void Update()
@@ -40,8 +41,15 @@ public class Brain : MonoBehaviour
         else
             neuralNetwork.CloseThread();
 
-        if(outputLog != null)
-            outputLog.text = info.log + "\n " + info.totalDetalError;
+        ShowLog();
+    }
+
+    private void ShowLog()
+    {
+        if (outputLog != null)
+            outputLog.text = info.log +
+                "\n Error = " + info.totalDetalError +
+                "\n CurrentBatchSize = " + batchInfo.sampleCount;
     }
 
     public void Train()

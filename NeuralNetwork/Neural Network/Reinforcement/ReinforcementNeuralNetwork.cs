@@ -8,50 +8,24 @@ namespace NeuralNetwork
 {
     public class ReinforcementNeuralNetwork : BatchNeuralNetwork
     {
-        List<Experience> experiences = new List<Experience>();
+        const int DEFAULTBUFFERSIZE = 75;
+
+        CycleArray<Experience> experienceBuffer;
+        int experienceBufferSize;
+
         public ReinforcementInfo reinforcementInfo { get; private set; }
 
-
-        public ReinforcementNeuralNetwork(int[] sizeNetwork, int sampleSize) : base(sizeNetwork, sampleSize)
+        public ReinforcementNeuralNetwork(int[] sizeNetwork, int sampleSize, int experienceBufferSize = DEFAULTBUFFERSIZE) : base(sizeNetwork, sampleSize)
         {
             reinforcementInfo = new ReinforcementInfo();
+            this.experienceBufferSize = experienceBufferSize;
+            experienceBuffer = new CycleArray<Experience>(experienceBufferSize);
         }
-        public ReinforcementNeuralNetwork(int[] sizeNetwork) : base(sizeNetwork)
+        public ReinforcementNeuralNetwork(int[] sizeNetwork, int experienceBufferSize = DEFAULTBUFFERSIZE) : base(sizeNetwork)
         {
             reinforcementInfo = new ReinforcementInfo();
-        }
-
-        public float[] SetInputGetOutput(float[] inputs, float randomRatio)
-        {
-            SetInput(inputs);
-            Update();
-            float[] outputs = GetOutputs();
-            float[] randomRatios = GetRandomFactors(randomRatio);
-            float[] randomisedOutput = AddOuputRandom(outputs, randomRatios);
-
-            AddExperience(inputs, outputs, randomRatios);
-            return randomisedOutput;
-        }
-
-        float[] AddOuputRandom(float[] outputs, float[] randomOuputFactors)
-        {
-            float[] randomisedOutput = new float[outputSize];
-            for (int i = 0; i < outputSize; i++)
-            {
-                randomisedOutput[i] = outputs[i] + randomOuputFactors[i];
-            }
-            return randomisedOutput;
-        }
-
-        float[] GetRandomFactors(float randomRatio)
-        {
-            float halfRandom = randomRatio * 0.5f;
-            float[] randomRatios = new float[outputSize];
-            for (int i = 0; i < outputSize; i++)
-            {
-                randomRatios[i] = Random.Range(-halfRandom, halfRandom);
-            }
-            return randomRatios;
+            this.experienceBufferSize = experienceBufferSize;
+            experienceBuffer = new CycleArray<Experience>(experienceBufferSize);
         }
 
         void AddExperience(float[] inputs, float[] outputs, float[] randomOuputFactors)
@@ -60,7 +34,8 @@ namespace NeuralNetwork
             exp.inputs = inputs;
             exp.outputs = outputs;
             exp.randomOuputFactor = randomOuputFactors;
-            experiences.Add(exp);
+
+            experienceBuffer.Add(exp);
         }
 
         public void AddReward(float reward)
@@ -82,31 +57,31 @@ namespace NeuralNetwork
                 reinforcementInfo.experienceCount++;
 
             reinforcementInfo.isStarted = true;
-            experiences.Clear();
+
+            experienceBuffer.Reset();
         }
+
         public void EndExperiment(bool addExperienceToBuffer)
         {
             reinforcementInfo.isStarted = false;
 
-            if(addExperienceToBuffer)
+            if(addExperienceToBuffer && reinforcementInfo.totalReward != 0)
                 AddToBatchTraining();
 
-            experiences.Clear();
         }
-        
+
         void AddToBatchTraining()
         {
-            foreach(Experience exp in experiences)
+            //Calculate weight factor
+            float weightFactor = (1 / experienceBufferSize) * reinforcementInfo.totalReward; 
+
+            Experience[] experiences = experienceBuffer.GetArray();
+            for (int i = 0; i < experiences.Length; i++)
             {
-                float[] desiredOutput = new float[outputSize];
-                for (int i = 0; i < outputSize; i++)
-                {
-                    //True output + reward * randomisedFactor
-                    //Si le randomised etait good = reward positif, train pour atteindre le randomised value
-                    //Else reward = negatif, train dans l'autre direction
-                    desiredOutput[i] = exp.outputs[i] + reinforcementInfo.totalReward * exp.randomOuputFactor[i];
-                }
-                AddTrainingData(exp.inputs, desiredOutput);
+                //lastest experiences are more important
+                float weight = weightFactor * (i + 1);
+                Experience exp = experiences[i];
+                AddTrainingData(exp.inputs, exp.outputs, weight);
             }
         }
 

@@ -6,13 +6,15 @@ namespace NeuralNetwork
 {
     public partial class BatchNeuralNetwork : ArtificialNeuralNetwork
     {
+
+
         /// <summary>
         /// Add one training data to the batch.
         /// Adding more training data will give more exemple.
         /// </summary>
         /// <param name="inputs">The current inputs.</param>
         /// <param name="desiredOutput">The desired output.</param>
-        public void AddTrainingData(float[] inputs, float[] desiredOutput)
+        public void AddTrainingData(float[] inputs, float[] desiredOutput, float weight = 1)
         {
             if (inputs.Length != SizeNetwork[0] || desiredOutput.Length != outputSize)
             {
@@ -34,6 +36,8 @@ namespace NeuralNetwork
 
             for (int i = 0; i < desiredOutput.Length; i++)
                 batchDesiredOutput[sampleCycleCount][i] = desiredOutput[i];
+
+            batchWeight[sampleCycleCount] = weight;
 
             sampleCycleCount = (sampleCycleCount + 1) % batchSize;
             sampleCount = Mathf.Min(sampleCount + 1, batchSize);
@@ -64,15 +68,17 @@ namespace NeuralNetwork
         /// </summary>
         /// <param name="learningRate">Learning rate.</param>
         /// <param name="momentum">Momentum.</param>
-        public void BatchTraining(float learningRate, float momentum)
+        public void BatchTraining(float learningRate = 0.1f, float momentum = 0)
         {
             if (sampleCount == 0)
                 return;
 
             int index = randomIndices[trainingCycleCount];
+            float weightedLearningRate = learningRate * batchWeight[index];
+
             SetInput(batchInputs[index]);
             Update();
-            TrainWithExemples(batchDesiredOutput[index], learningRate, momentum);
+            TrainWithExemples(batchDesiredOutput[index], weightedLearningRate, momentum);
 
             trainingCycleCount++;
             if (trainingCycleCount == sampleCount)
@@ -80,39 +86,6 @@ namespace NeuralNetwork
                 trainingCycleCount = 0;
                 randomIndices.Shuffle();
             }
-        }
-
-        /// <summary>
-        /// <para>
-        /// Train the neural network using all the exemples
-        /// previously added with the method AddTrainingData.
-        /// </para>
-        /// <para>
-        /// For best results, call this method, 
-        /// then set the new inputs and update the neural network.
-        /// </para>
-        /// 
-        /// </summary>
-        /// <param name="learningRate">Learning rate.</param>
-        public void BatchTraining(float learningRate)
-        {
-            BatchTraining(learningRate, 0);
-        }
-
-        /// <summary>
-        /// <para>
-        /// Train the neural network using all the exemples
-        /// previously added with the method AddTrainingData.
-        /// </para>
-        /// <para>
-        /// For best results, call this method, 
-        /// then set the new inputs and update the neural network.
-        /// </para>
-        /// 
-        /// </summary>
-        public void BatchTraining()
-        {
-            BatchTraining(0.1f, 0);
         }
     }
 }

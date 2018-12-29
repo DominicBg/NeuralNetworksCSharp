@@ -23,7 +23,7 @@ public class BrainReinforcement : Brain {
 
     public override float[] SetInputGetOutput(float[] inputs)
     {
-        return reinforcementNeural.SetInputGetOutput(inputs, randomRatio);
+        return null;// reinforcementNeural.SetInputGetOutput(inputs, randomRatio);
     }
     public void AddReward(float reward)
     {

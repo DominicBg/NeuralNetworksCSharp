@@ -14,6 +14,8 @@ namespace NeuralNetwork
         //Batch data
         float[][] batchInputs;
         float[][] batchDesiredOutput;
+        float[] batchWeight;
+
         int[] randomIndices;
 
         //Sizes
@@ -44,6 +46,7 @@ namespace NeuralNetwork
 
             batchInputs = new float[batchSize][];
             batchDesiredOutput = new float[batchSize][];
+            batchWeight = new float[batchSize];
 
             for (int i = 0; i < batchSize; i++)
             {
