@@ -28,10 +28,9 @@ namespace NeuralNetwork
                         if (k != nn.NeuronNetwork[i, j].weights.Length - 1)
                             str += " ";
                     }
-
-                    //str += "|" + nn.NeuronNetwork[i, j].deltaError + "|\n"; //each neuron
+                    str += "\n"; //each neuron
                 }
-                str += "\n"; //each layer
+              //  str += "\n"; //each layer
             }
             string path = "Assets/Resources/NeuralNetworkValue" + additional + ".txt";
             StreamWriter writer = new StreamWriter(path, false);
@@ -57,10 +56,11 @@ namespace NeuralNetwork
                     float[] weights = new float[strWeights.Length];
                     for (int k = 0; k < strWeights.Length; k++)
                     {
-                        Debug.Log(strWeights[k]);
+                        //Debug.Log(strWeights[k]);
                         weights[k] = System.Convert.ToSingle(strWeights[k]);
                     }
                     nn.NeuronNetwork[i, j].weights = weights;
+
                 }
             }
             reader.Close();

@@ -37,6 +37,11 @@ namespace NeuralNetwork
                 network[0, i].output = values[i];
         }
 
+        public ANN_Output GetANNOutput()
+        {
+            return new ANN_Output(GetOutputs());
+        }
+
         /// <summary>
         /// Gets the output of a given index.
         /// </summary>

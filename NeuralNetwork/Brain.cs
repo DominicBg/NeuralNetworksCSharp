@@ -2,14 +2,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class Brain : MonoBehaviour
 {
     public bool isTraining;
 
-    public ThreadNeuralNetwork neuralNetwork { get; protected set; }
+    public BatchNeuralNetwork neuralNetwork { get; protected set; }
     public ArtificialNeuralNetwork.Info info { get; protected set; }
+    public BatchNeuralNetwork.BatchInfo batchInfo { get; protected set; }
 
     [Header("First = input, Last = Output")]
     [SerializeField] protected int[] sizeNetwork = new int[] { 2, 3, 2 };
@@ -20,27 +22,61 @@ public class Brain : MonoBehaviour
     [SerializeField] protected bool useThread = false;
     [SerializeField] Text outputLog;
     [SerializeField] string brainName;
+    [SerializeField] protected int maxBatchSize = 50000;
 
-    void Start()
+    public UnityEvent OnBrainTick { get; private set; }
+    [SerializeField] float tickRate = 0;
+
+    float currentTick = 0;
+
+    void Awake()
     {
-        neuralNetwork = new ThreadNeuralNetwork(sizeNetwork);
+        neuralNetwork = new BatchNeuralNetwork(sizeNetwork, maxBatchSize);
+        InitInfo();
+    }
+    protected virtual void InitInfo()
+    {
         info = neuralNetwork.info;
+        batchInfo = neuralNetwork.batchInfo;
+        OnBrainTick = new UnityEvent();
     }
 
-    public void AddTrainingData(float[] inputs, float[] desiredOutput)
+    public void AddTrainingData(float[] inputs, float[] desiredOutput, float weight = 1)
     {
-        neuralNetwork.AddTrainingData(inputs, desiredOutput);
+        neuralNetwork.AddTrainingData(inputs, desiredOutput, weight);
     }
 
     void Update()
     {
+        if (tickRate != 0)
+        {
+            currentTick -= Time.deltaTime;
+            if (currentTick > 0)
+                return;
+
+            currentTick = tickRate;
+            OnBrainTick.Invoke();
+        }
+
         if (isTraining)
             Train();
         else
             neuralNetwork.CloseThread();
 
-        if(outputLog != null)
-            outputLog.text = info.log + "\n " + info.totalDetalError;
+        ShowLog(GetLog());
+    }
+
+    protected virtual string GetLog()
+    {
+        return info.log +
+            "\n Error = " + info.totalDetalError +
+            "\n CurrentBatchSize = " + batchInfo.sampleCount;
+    }
+
+    protected void ShowLog(string log)
+    {
+        if (outputLog != null)
+            outputLog.text = log;
     }
 
     public void Train()
@@ -51,17 +87,18 @@ public class Brain : MonoBehaviour
             neuralNetwork.BatchTraining(learningRate, momentum);
     }
 
-    public virtual float[] SetInputGetOutput(float[]inputs)
+    public virtual ANN_Output SetInputGetOutput(float[]inputs, float randomFactor = 0)
     {
         neuralNetwork.SetInput(inputs);
         neuralNetwork.Update();
-        return neuralNetwork.GetOutputs();
-    }
-    public virtual float[] SetInputGetOutputRandomise(float[] inputs, float randomFactor)
-    {
-        neuralNetwork.SetInput(inputs);
-        neuralNetwork.Update();
-        return neuralNetwork.GetOutputsRandomised(randomFactor);
+        ANN_Output output = neuralNetwork.GetANNOutput();
+
+        if (randomFactor != 0)
+        {
+            output.RandomizeOutput(randomFactor);
+        }
+
+        return output;
     }
 
     private void OnDestroy()
